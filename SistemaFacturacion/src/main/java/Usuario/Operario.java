@@ -23,53 +23,60 @@ public class Operario extends Usuario {
     public Operario(String usuario, String contraseña) {
         super(usuario, contraseña);
     }
+    private String obtenerCodigoMedidor() {
+        System.out.println("Ingrese el código del medidor: ");
+        return sc.nextLine();
+    }
+    
+    private void procesarMedicion(MedidorAnalogico medidor, Abonado abonado) {
+        System.out.println("Medidor analógico a nombre de " + abonado.getNombre() + "\nÚltima lectura realizada " + medidor.getUltimaFechaCobrado() + "\nLectura anterior " + medidor.getConsumoUltimaFecha() + " Kw");
+        System.out.println("Ingrese la lectura actual: ");
+        double lecturaActual = sc.nextDouble();
+        sc.nextLine();
+        double kw = lecturaActual - medidor.getConsumoUltimaFecha();
+        System.out.println("Kilovatios consumidos " + kw + " Kw."+"\nOperario: " + getUsuario());
+        MedidorAnalogico medidorAnalogico = (MedidorAnalogico) medidor;
+        medidorAnalogico.setOperario(this);
+        Lectura lectura = new Lectura(LocalDateTime.now(), lecturaActual);
+        medidorAnalogico.getLecturas().add(lectura);
+    }
 
-    //arraylist
-    //for 
-    // registrarMedicion(ab.getMedidores)
-    public void registrarMedicion(ArrayList<Medidor> m, ArrayList<Usuario> usuarios, Operario operario) {
-        
-        boolean b = true;
-        int n = 0;
-        String codigo = "";
-
-        do {
-            System.out.println("Ingrese el codigo del medidor: ");
-            codigo = sc.nextLine();
-            
-            for (Medidor med : m) {
-                if (med.getCodigoMedidor().equals(codigo)) {
-                    if (med instanceof MedidorAnalogico) {
-                        for (Usuario u : usuarios) {
-                            if (u instanceof Abonado) {
-                                Abonado ab = (Abonado) u;
-                                if (ab.getDireccion().equals(med.getDireccion())) {
-                                    
-                                    System.out.println("Medidor analogico a nombre de " + ab.getNombre() + ".");///a nombre de quien??
-                                    System.out.println("Ultima lectura realizada " + med.getUltimaFechaCobrado());
-                                    System.out.println("Lectura anterior " + med.getConsumoUltimaFecha() + " Kw.");
-                                    System.out.println("Ingrese la lectura actual: ");
-                                    double lecturaActual = sc.nextInt();
-                                    sc.nextLine();
-                                    double kw = lecturaActual - med.getConsumoUltimaFecha();
-                                    System.out.println("Kilovatios consumidos " + kw + "Kw.");
-                                    System.out.println("Operario: " + operario.getUsuario());
-                                    
-                                    MedidorAnalogico ma = (MedidorAnalogico)med;
-                                    ma.setOperario(operario);
-                                    
-                                    Lectura lectura = new Lectura(LocalDateTime.now(), lecturaActual);
-                                    
-                                    ma.getLecturas().add(lectura);
-                                    
-                                    b = false;
-                                }
-                            }
-                        }
+    private Abonado buscarAbonado(Medidor medidor, ArrayList<Usuario> usuarios) {
+        if (medidor instanceof MedidorAnalogico) {
+            String direccionMedidor = medidor.getDireccion();
+            for (Usuario usuario : usuarios) {
+                if (usuario instanceof Abonado) {
+                    Abonado abonado = (Abonado) usuario;
+                    if (abonado.getDireccion().equals(direccionMedidor)) {
+                        return abonado;
                     }
                 }
-            }System.out.println("Codigo del medidor invalido, vuelva a ingresar uno valido");         
-        } while(b);
+            }
+        }
+        return null;
+    }
+    public boolean encontrarMedidor(ArrayList<Medidor> medidores, ArrayList<Usuario> usuarios){
+        for (Medidor medidor : medidores) {
+            if (medidor.getCodigoMedidor().equals(obtenerCodigoMedidor())) {
+                if (medidor instanceof MedidorAnalogico) {
+                    Abonado abonado = buscarAbonado(medidor, usuarios);
+                    if (abonado != null) {
+                        procesarMedicion((MedidorAnalogico) medidor, abonado);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    public void registrarMedicion(ArrayList<Medidor> medidores, ArrayList<Usuario> usuarios) { 
+        boolean medidorEncontrado;
+        do {
+            medidorEncontrado = encontrarMedidor(medidores, usuarios);
+            if (!medidorEncontrado) {
+                System.out.println("Código del medidor inválido. Ingrese uno válido.");
+            }     
+        }while(!medidorEncontrado);
     }
     
 }
