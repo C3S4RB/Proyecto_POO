@@ -28,9 +28,7 @@ public class MedidorAnalogico extends Medidor {
 
     @Override
     public double calcularConsumo(ArrayList<Lectura> lecturas) {
-        int n = lecturas.size();
-        double c = lecturas.get(n - 1).getKilovatios() - lecturas.get(0).getKilovatios();
-        return c;
+        return lecturas.get(lecturas.size() - 1).getKilovatios() - lecturas.get(0).getKilovatios();
     }
 
     @Override
